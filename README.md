@@ -6,7 +6,7 @@ Estudiante: Maria Del Mar Artunduaga Artunduaga
 ---
 
 ## Demo en línea
-> Agrega aquí el link de Render una vez desplegado
+https://smartcapital360.onrender.com/login
 
 ---
 
