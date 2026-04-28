@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartCapital 360° {% block title %}{% endblock %}</title>
+<style>
+  :root {
+    --azul: #1a3a5c;
+    --azul-claro: #2563eb;
+    --verde: #16a34a;
+    --rojo: #dc2626;
+    --naranja: #ea580c;
+    --gris: #f1f5f9;
+    --borde: #e2e8f0;
+    --texto: #1e293b;
+    --sombra: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',sans-serif; background:#f8fafc; color:var(--texto); display:flex; min-height:100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width:240px; background:var(--azul); color:#fff; display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:100; }
+  .sidebar-logo { padding:20px 16px; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo h1 { font-size:1.1rem; font-weight:700; color:#fff; }
+  .sidebar-logo span { font-size:0.72rem; color:#94a3b8; }
+  .sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 18px; color:#cbd5e1; text-decoration:none; font-size:0.875rem; transition:all .15s; border-left:3px solid transparent; }
+  .nav-item:hover, .nav-item.active { background:rgba(255,255,255,0.08); color:#fff; border-left-color:var(--azul-claro); }
+  .nav-icon { font-size:1.1rem; width:20px; text-align:center; }
+  .sidebar-footer { padding:14px 18px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.75rem; color:#64748b; }
+
+  /* MAIN */
+  .main { margin-left:240px; flex:1; display:flex; flex-direction:column; }
+  .topbar { background:#fff; border-bottom:1px solid var(--borde); padding:12px 28px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--sombra); position:sticky; top:0; z-index:50; }
+  .topbar-title { font-size:1.1rem; font-weight:600; color:var(--azul); }
+  .topbar-user { display:flex; align-items:center; gap:10px; font-size:0.85rem; }
+  .avatar { width:34px; height:34px; border-radius:50%; background:var(--azul-claro); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; }
+  .content { padding:28px; flex:1; }
+
+  /* CARDS */
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+  .card { background:#fff; border-radius:10px; padding:20px; box-shadow:var(--sombra); border:1px solid var(--borde); }
+  .card-icon { font-size:2rem; margin-bottom:8px; }
+  .card-value { font-size:2rem; font-weight:700; color:var(--azul); }
+  .card-label { font-size:0.8rem; color:#64748b; margin-top:2px; }
+  .card.verde .card-value { color:var(--verde); }
+  .card.rojo .card-value { color:var(--rojo); }
+  .card.naranja .card-value { color:var(--naranja); }
+
+  /* TABLES */
+  .table-wrap { background:#fff; border-radius:10px; box-shadow:var(--sombra); border:1px solid var(--borde); overflow:hidden; }
+  .table-header { padding:16px 20px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center; }
+  .table-header h3 { font-size:1rem; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  th { background:#f8fafc; padding:10px 14px; text-align:left; font-weight:600; color:#475569; border-bottom:1px solid var(--borde); }
+  td { padding:10px 14px; border-bottom:1px solid #f1f5f9; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#f8fafc; }
+
+  /* BADGES */
+  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+  .badge-verde { background:#dcfce7; color:#16a34a; }
+  .badge-rojo { background:#fee2e2; color:#dc2626; }
+  .badge-naranja { background:#ffedd5; color:#ea580c; }
+  .badge-azul { background:#dbeafe; color:#1d4ed8; }
+  .badge-gris { background:#f1f5f9; color:#475569; }
+
+  /* BUTTONS */
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:6px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; text-decoration:none; transition:all .15s; }
+  .btn-primary { background:var(--azul-claro); color:#fff; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-danger { background:var(--rojo); color:#fff; }
+  .btn-danger:hover { background:#b91c1c; }
+  .btn-success { background:var(--verde); color:#fff; }
+  .btn-success:hover { background:#15803d; }
+  .btn-outline { background:#fff; color:var(--azul); border:1px solid var(--borde); }
+  .btn-outline:hover { background:var(--gris); }
+  .btn-sm { padding:4px 10px; font-size:0.78rem; }
+
+  /* FORMS */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-group { display:flex; flex-direction:column; gap:4px; }
+  .form-group.full { grid-column:1/-1; }
+  label { font-size:0.82rem; font-weight:600; color:#475569; }
+  input, select, textarea { padding:8px 12px; border:1px solid var(--borde); border-radius:6px; font-size:0.875rem; width:100%; background:#fff; }
+  input:focus, select:focus { outline:none; border-color:var(--azul-claro); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#fff; border-radius:12px; padding:28px; width:520px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+  .modal h2 { font-size:1.1rem; margin-bottom:20px; color:var(--azul); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:#1e293b; color:#fff; padding:12px 20px; border-radius:8px; font-size:0.875rem; z-index:999; opacity:0; transform:translateY(10px); transition:all .3s; max-width:360px; }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.verde { background:var(--verde); }
+  .toast.rojo { background:var(--rojo); }
+
+  /* EMERGENCY BAR */
+  .emergency-bar { background:var(--rojo); color:#fff; text-align:center; padding:8px; font-weight:700; font-size:0.9rem; animation:pulse 1s infinite; display:none; }
+  .emergency-bar.active { display:block; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+
+  /* Section headers */
+  .section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .section-head h2 { font-size:1.25rem; font-weight:700; color:var(--azul); }
+
+  /* 2-col layout */
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:900px){ .row2 { grid-template-columns:1fr; } .form-grid { grid-template-columns:1fr; } }
+
+  /* Alert card */
+  .alert-card { background:#fff; border-radius:10px; border-left:4px solid var(--rojo); box-shadow:var(--sombra); padding:14px 18px; margin-bottom:10px; }
+  .alert-card.atendida { border-left-color:var(--verde); opacity:.7; }
+</style>
+</head>
+<body>
+<div id="emergencyBar" class="emergency-bar">🚨 MODO EMERGENCIA ACTIVO — Todas las puertas están abiertas</div>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h1>SmartCapital 360°</h1>
+    <span>Sistema de Control de Accesos</span>
+  </div>
+  <div class="sidebar-nav">
+    <a href="/dashboard" class="nav-item {% if request.path=='/dashboard' %}active{% endif %}">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <a href="/acceso" class="nav-item {% if request.path=='/acceso' %}active{% endif %}">
+      <span class="nav-icon">🔐</span> Simular Acceso
+    </a>
+    <a href="/usuarios" class="nav-item {% if request.path=='/usuarios' %}active{% endif %}">
+      <span class="nav-icon">👥</span> Usuarios
+    </a>
+    <a href="/visitantes" class="nav-item {% if request.path=='/visitantes' %}active{% endif %}">
+      <span class="nav-icon">🪪</span> Visitantes
+    </a>
+    <a href="/puntos" class="nav-item {% if request.path=='/puntos' %}active{% endif %}">
+      <span class="nav-icon">🚪</span> Puntos de Acceso
+    </a>
+    <a href="/alertas" class="nav-item {% if request.path=='/alertas' %}active{% endif %}">
+      <span class="nav-icon">🔔</span> Alertas
+    </a>
+    <a href="/reportes" class="nav-item {% if request.path=='/reportes' %}active{% endif %}">
+      <span class="nav-icon">📋</span> Reportes
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    Politécnico Grancolombiano<br>Gerencia de Proyectos 2026
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">{% block page_title %}SmartCapital 360°{% endblock %}</span>
+    <div class="topbar-user">
+      <div class="avatar">{{ session.user_name[0] }}</div>
+      <div>
+        <div style="font-weight:600;">{{ session.user_name }}</div>
+        <div style="color:#64748b;font-size:0.75rem;">{{ session.user_perfil }}</div>
+      </div>
+      <a href="/logout" class="btn btn-outline btn-sm">Salir</a>
+    </div>
+  </div>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3500);
+}
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

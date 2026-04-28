@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}— Alertas{% endblock %}
+{% block page_title %}🔔 Gestión de Alertas de Seguridad{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h2>Alertas del sistema ({{ alertas|length }})</h2>
+</div>
+
+{% for a in alertas %}
+<div class="alert-card {{ 'atendida' if a.estado != 'PENDIENTE' else '' }}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+    <div>
+      <span class="badge {{ 'badge-rojo' if a.estado=='PENDIENTE' else 'badge-verde' }}">
+        {{ '🔴 ' if a.estado=='PENDIENTE' else '✅ ' }}{{ a.estado }}
+      </span>
+      <span class="badge badge-naranja" style="margin-left:6px;">{{ a.tipo_alerta }}</span>
+    </div>
+    <span style="font-size:0.78rem;color:#64748b;">{{ a.timestamp_emision[:16] }}</span>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:24px;flex-wrap:wrap;">
+    <div><span style="font-size:0.78rem;color:#94a3b8;">Punto:</span><br><strong>{{ a.punto_nombre or 'N/A' }}</strong></div>
+    <div><span style="font-size:0.78rem;color:#94a3b8;">Usuario:</span><br><strong>{{ a.usuario_acceso or 'Desconocido' }}</strong></div>
+    {% if a.observacion_cierre %}
+    <div><span style="font-size:0.78rem;color:#94a3b8;">Observación:</span><br><em>{{ a.observacion_cierre }}</em></div>
+    {% endif %}
+    {% if a.operador_nombre %}
+    <div><span style="font-size:0.78rem;color:#94a3b8;">Atendida por:</span><br>{{ a.operador_nombre }}</div>
+    {% endif %}
+  </div>
+  {% if a.estado == 'PENDIENTE' %}
+  <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+    <input type="text" id="obs_{{ a.id_alerta }}" placeholder="Observación de cierre..." style="flex:1;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:0.82rem;">
+    <button onclick="atenderAlerta({{ a.id_alerta }})" class="btn btn-success btn-sm">✅ Atender</button>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;color:#94a3b8;">
+  <div style="font-size:3rem;">✅</div>
+  <h3 style="margin-top:12px;">Sin alertas registradas</h3>
+  <p style="font-size:0.85rem;margin-top:4px;">El sistema está operando normalmente</p>
+</div>
+{% endfor %}
+
+<script>
+async function atenderAlerta(id) {
+  const obs = document.getElementById('obs_' + id).value;
+  const r = await fetch(`/api/atender_alerta/${id}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ observacion: obs })
+  });
+  const d = await r.json();
+  showToast('Alerta atendida correctamente', 'verde');
+  setTimeout(() => location.reload(), 1000);
+}
+</script>
+{% endblock %}

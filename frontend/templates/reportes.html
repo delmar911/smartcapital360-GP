@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}— Reportes{% endblock %}
+{% block page_title %}📋 Reportes de Acceso{% endblock %}
+{% block content %}
+<div class="table-wrap" style="padding:20px;margin-bottom:20px;">
+  <h3 style="margin-bottom:16px;color:#1a3a5c;">🔍 Filtros de búsqueda</h3>
+  <div class="form-grid">
+    <div class="form-group"><label>Fecha desde</label><input type="date" id="f_ini"></div>
+    <div class="form-group"><label>Fecha hasta</label><input type="date" id="f_fin"></div>
+    <div class="form-group">
+      <label>Resultado</label>
+      <select id="f_resultado">
+        <option value="">Todos</option>
+        <option value="AUTORIZADO">Autorizados</option>
+        <option value="DENEGADO">Denegados</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Punto de acceso</label>
+      <select id="f_punto">
+        <option value="">Todos</option>
+        {% for p in puntos %}<option value="{{ p.id_punto }}">{{ p.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <button onclick="buscarEventos()" class="btn btn-primary" style="margin-top:14px;">🔍 Generar reporte</button>
+</div>
+
+<div class="table-wrap" id="resultados" style="display:none;">
+  <div class="table-header">
+    <h3>📋 Resultados</h3>
+    <span id="totalLabel" style="font-size:0.82rem;color:#64748b;"></span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table id="tablaEventos">
+      <thead><tr><th>#</th><th>Fecha/Hora</th><th>Usuario</th><th>Punto</th><th>Método</th><th>Resultado</th><th>Observación</th></tr></thead>
+      <tbody id="tbodyEventos"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Set defaults
+const hoy = new Date().toISOString().slice(0,10);
+const hace7 = new Date(Date.now() - 7*86400000).toISOString().slice(0,10);
+document.getElementById('f_ini').value = hace7;
+document.getElementById('f_fin').value = hoy;
+
+async function buscarEventos() {
+  const params = new URLSearchParams({
+    fecha_ini: document.getElementById('f_ini').value,
+    fecha_fin: document.getElementById('f_fin').value,
+    resultado: document.getElementById('f_resultado').value,
+    id_punto: document.getElementById('f_punto').value,
+  });
+  const r = await fetch('/api/reporte_eventos?' + params);
+  const data = await r.json();
+
+  document.getElementById('resultados').style.display = 'block';
+  document.getElementById('totalLabel').textContent = `${data.length} registros encontrados`;
+
+  const tbody = document.getElementById('tbodyEventos');
+  tbody.innerHTML = data.map((e,i) => `
+    <tr>
+      <td style="color:#94a3b8;">${e.id_evento}</td>
+      <td style="font-size:0.8rem;">${e.timestamp?.slice(0,16)||'—'}</td>
+      <td>${e.usuario||'<em style="color:#94a3b8;">Desconocido</em>'}</td>
+      <td>${e.punto||'—'}</td>
+      <td><span class="badge badge-azul">${e.metodo_auth}</span></td>
+      <td>${e.resultado==='AUTORIZADO'
+        ? '<span class="badge badge-verde">✅ Autorizado</span>'
+        : '<span class="badge badge-rojo">❌ Denegado</span>'}</td>
+      <td style="font-size:0.78rem;color:#64748b;">${e.observacion||''}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">Sin resultados</td></tr>';
+}
+
+// Load on page open
+buscarEventos();
+</script>
+{% endblock %}

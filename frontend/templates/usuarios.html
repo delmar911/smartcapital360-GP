@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}— Usuarios{% endblock %}
+{% block page_title %}👥 Gestión de Usuarios{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h2>Usuarios registrados ({{ users|length }})</h2>
+  <button onclick="openModal('modalCrear')" class="btn btn-primary">➕ Nuevo usuario</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>Email</th><th>Documento</th><th>Perfil</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.nombre }} {{ u.apellido }}</strong></td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.documento }}</td>
+        <td><span class="badge badge-azul">{{ u.nombre_perfil }}</span></td>
+        <td><span class="badge badge-gris">{{ u.rol_sistema }}</span></td>
+        <td>
+          {% if u.estado %}<span class="badge badge-verde">Activo</span>
+          {% else %}<span class="badge badge-rojo">Inactivo</span>{% endif %}
+        </td>
+        <td>
+          <button onclick="toggleUsuario({{ u.id_usuario }}, this)" class="btn btn-outline btn-sm">
+            {{ '🔴 Desactivar' if u.estado else '🟢 Activar' }}
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL CREAR USUARIO -->
+<div class="modal-overlay" id="modalCrear">
+  <div class="modal">
+    <h2>➕ Crear Nuevo Usuario</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input id="u_nombre" placeholder="Carlos"></div>
+      <div class="form-group"><label>Apellido</label><input id="u_apellido" placeholder="Rodríguez"></div>
+      <div class="form-group"><label>Email corporativo</label><input id="u_email" type="email" placeholder="usuario@empresa.co"></div>
+      <div class="form-group"><label>Documento (CC/CE)</label><input id="u_doc" placeholder="123456789"></div>
+      <div class="form-group">
+        <label>Perfil de acceso</label>
+        <select id="u_perfil">
+          {% for p in perfiles %}<option value="{{ p.id_perfil }}">{{ p.nombre_perfil }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rol en sistema</label>
+        <select id="u_rol">
+          <option value="empleado">Empleado</option>
+          <option value="admin">Administrador</option>
+          <option value="seguridad">Seguridad</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Contraseña temporal</label><input id="u_pass" type="password" placeholder="Min. 6 caracteres"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="closeModal('modalCrear')" class="btn btn-outline">Cancelar</button>
+      <button onclick="crearUsuario()" class="btn btn-primary">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function crearUsuario() {
+  const body = new URLSearchParams({
+    nombre: document.getElementById('u_nombre').value,
+    apellido: document.getElementById('u_apellido').value,
+    email: document.getElementById('u_email').value,
+    documento: document.getElementById('u_doc').value,
+    id_perfil: document.getElementById('u_perfil').value,
+    rol_sistema: document.getElementById('u_rol').value,
+    password: document.getElementById('u_pass').value,
+  });
+  const r = await fetch('/usuarios/crear', { method:'POST', body });
+  const d = await r.json();
+  showToast(d.message, d.success ? 'verde' : 'rojo');
+  if (d.success) { closeModal('modalCrear'); setTimeout(()=>location.reload(), 1200); }
+}
+
+async function toggleUsuario(uid, btn) {
+  const r = await fetch(`/usuarios/toggle/${uid}`, { method:'POST' });
+  const d = await r.json();
+  if (d.success) {
+    btn.textContent = d.nuevo_estado ? '🔴 Desactivar' : '🟢 Activar';
+    showToast(d.nuevo_estado ? 'Usuario activado' : 'Usuario desactivado', d.nuevo_estado ? 'verde' : 'rojo');
+    setTimeout(()=>location.reload(), 900);
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}— Simular Acceso{% endblock %}
+{% block page_title %}🔐 Simulador de Control de Acceso{% endblock %}
+{% block content %}
+<div class="row2">
+  <div>
+    <div class="table-wrap" style="padding:24px;">
+      <h3 style="margin-bottom:18px;color:#1a3a5c;">Presentar Credencial RFID</h3>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Punto de Acceso</label>
+        <select id="selPunto">
+          {% for p in puntos %}
+          <option value="{{ p.id_punto }}">{{ p.nombre }} — {{ p.ubicacion }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Código RFID (selecciona o escribe)</label>
+        <select id="selRFID" onchange="document.getElementById('rfidInput').value=this.value">
+          <option value="">— Seleccionar credencial —</option>
+          {% for c in credenciales %}
+          <option value="{{ c.codigo_rfid }}">{{ c.codigo_rfid }} — {{ c.nombre_usuario }}</option>
+          {% endfor %}
+          <option value="RFID-INVALIDO-999">RFID-INVALIDO-999 (prueba denegado)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>O escribe el código manualmente</label>
+        <input type="text" id="rfidInput" placeholder="Ej: RFID-ADMIN-001" />
+      </div>
+      <button onclick="simularAcceso()" class="btn btn-primary" style="width:100%;padding:12px;font-size:1rem;">
+        🔑 Autenticar
+      </button>
+    </div>
+
+    <!-- Result panel -->
+    <div id="resultado" style="display:none;margin-top:16px;border-radius:12px;padding:24px;text-align:center;transition:all .3s;">
+      <div id="resIcono" style="font-size:3rem;"></div>
+      <div id="resMensaje" style="font-size:1.1rem;font-weight:700;margin:10px 0;"></div>
+      <div id="resObs" style="font-size:0.85rem;color:#64748b;"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="table-wrap">
+      <div class="table-header"><h3>🚪 Estado de Puntos de Acceso</h3></div>
+      <table>
+        <thead><tr><th>Punto</th><th>Tipo</th><th>Estado</th><th>Emergencia</th></tr></thead>
+        <tbody>
+          {% for p in puntos %}
+          <tr>
+            <td><strong>{{ p.nombre }}</strong><br><span style="font-size:0.78rem;color:#64748b;">{{ p.ubicacion }}</span></td>
+            <td><span class="badge badge-azul">{{ p.tipo_acceso }}</span></td>
+            <td>
+              {% if p.estado == 'ABIERTO' %}<span class="badge badge-verde">ABIERTO</span>
+              {% elif p.estado == 'ABIERTO_EMERGENCIA' %}<span class="badge badge-rojo">EMERGENCIA</span>
+              {% else %}<span class="badge badge-gris">CERRADO</span>{% endif %}
+            </td>
+            <td>
+              {% if p.modo_emergencia %}<span class="badge badge-rojo">🚨 SÍ</span>
+              {% else %}<span class="badge badge-gris">No</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:16px;background:#f0f9ff;border-radius:10px;padding:16px;border:1px solid #bae6fd;">
+      <h4 style="color:#0369a1;margin-bottom:8px;">💡 Guía de prueba</h4>
+      <ul style="font-size:0.82rem;color:#0c4a6e;line-height:1.8;padding-left:16px;">
+        <li><strong>RFID-ADMIN-001</strong> — Acceso total</li>
+        <li><strong>RFID-EMP-001</strong> — Empleado (pisos 1-4)</li>
+        <li><strong>RFID-DIR-001</strong> — Directivo (pisos 1-5)</li>
+        <li><strong>RFID-SEG-001</strong> — Seguridad (acceso completo)</li>
+        <li><strong>RFID-INVALIDO-999</strong> — Credencial no reconocida</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+async function simularAcceso() {
+  const rfid = document.getElementById('rfidInput').value.trim() || document.getElementById('selRFID').value;
+  const punto = document.getElementById('selPunto').value;
+  if (!rfid) { showToast('Selecciona o ingresa un código RFID', 'rojo'); return; }
+
+  const r = await fetch('/api/simular_acceso', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ rfid, id_punto: punto })
+  });
+  const d = await r.json();
+
+  const panel = document.getElementById('resultado');
+  panel.style.display = 'block';
+  panel.style.background = d.color === 'green' ? '#dcfce7' : '#fee2e2';
+  panel.style.border = `2px solid ${d.color === 'green' ? '#16a34a' : '#dc2626'}`;
+  document.getElementById('resIcono').textContent = d.color === 'green' ? '✅' : '❌';
+  document.getElementById('resMensaje').textContent = d.mensaje;
+  document.getElementById('resObs').textContent = d.obs || '';
+
+  showToast(d.mensaje, d.color === 'green' ? 'verde' : 'rojo');
+}
+</script>
+{% endblock %}

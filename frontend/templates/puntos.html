@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}— Puntos de Acceso{% endblock %}
+{% block page_title %}🚪 Puntos de Acceso{% endblock %}
+{% block content %}
+<div class="section-head"><h2>Puntos de Acceso del Edificio ({{ puntos|length }})</h2></div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Nombre</th><th>Ubicación</th><th>Tipo</th><th>Zona</th><th>Controlador</th><th>Estado</th><th>Emergencia</th></tr></thead>
+    <tbody>
+      {% for p in puntos %}
+      <tr>
+        <td><strong>{{ p.nombre }}</strong></td>
+        <td>{{ p.ubicacion }}</td>
+        <td><span class="badge badge-azul">{{ p.tipo_acceso }}</span></td>
+        <td>{{ p.zona_nombre or '—' }}</td>
+        <td style="font-size:0.78rem;color:#64748b;">{{ p.controlador_modelo or '—' }}</td>
+        <td>
+          {% if p.estado == 'ABIERTO' or p.estado == 'ABIERTO_EMERGENCIA' %}
+            <span class="badge badge-verde">ABIERTO</span>
+          {% else %}
+            <span class="badge badge-gris">CERRADO</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if p.modo_emergencia %}<span class="badge badge-rojo">🚨 ACTIVO</span>
+          {% else %}<span class="badge badge-gris">Normal</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SmartCapital 360° — Iniciar Sesión</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { min-height:100vh; background:linear-gradient(135deg,#1a3a5c 0%,#2563eb 100%); display:flex; align-items:center; justify-content:center; font-family:'Segoe UI',sans-serif; }
+  .login-box { background:#fff; border-radius:16px; padding:44px 40px; width:400px; box-shadow:0 24px 60px rgba(0,0,0,0.25); }
+  .logo { text-align:center; margin-bottom:32px; }
+  .logo-icon { font-size:3rem; }
+  .logo h1 { font-size:1.5rem; font-weight:800; color:#1a3a5c; margin-top:8px; }
+  .logo p { font-size:0.82rem; color:#64748b; margin-top:4px; }
+  .form-group { margin-bottom:16px; }
+  label { display:block; font-size:0.82rem; font-weight:600; color:#475569; margin-bottom:5px; }
+  input { width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem; transition:border-color .15s; }
+  input:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+  .btn { width:100%; padding:12px; background:#2563eb; color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:8px; transition:background .15s; }
+  .btn:hover { background:#1d4ed8; }
+  .error { background:#fee2e2; color:#dc2626; border-radius:8px; padding:10px 14px; font-size:0.84rem; margin-bottom:16px; }
+  .demo-creds { background:#f0f9ff; border-radius:8px; padding:12px 14px; margin-top:16px; font-size:0.78rem; color:#0369a1; }
+  .demo-creds strong { display:block; margin-bottom:4px; }
+  .divider { border:none; border-top:1px solid #e2e8f0; margin:18px 0; }
+</style>
+</head>
+<body>
+<div class="login-box">
+  <div class="logo">
+    <div class="logo-icon">🏢</div>
+    <h1>SmartCapital 360°</h1>
+    <p>Sistema Inteligente de Control de Accesos</p>
+  </div>
+  {% if error %}
+  <div class="error">⚠️ {{ error }}</div>
+  {% endif %}
+  <form method="POST">
+    <div class="form-group">
+      <label>Correo electrónico</label>
+      <input type="email" name="email" placeholder="usuario@smartcapital.co" required autofocus>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="btn">🔐 Iniciar sesión</button>
+  </form>
+  <hr class="divider">
+  <div class="demo-creds">
+    <strong>👤 Credenciales de demostración:</strong>
+    Admin: admin@smartcapital.co / admin123<br>
+    Empleado: carlos.rodriguez@smartcapital.co / emp123<br>
+    Seguridad: pedro.gomez@smartcapital.co / seg123
+  </div>
+</div>
+</body>
+</html>

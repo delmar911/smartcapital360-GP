@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}— Dashboard{% endblock %}
+{% block page_title %}📊 Dashboard — Monitor en Tiempo Real{% endblock %}
+{% block content %}
+<div class="cards-grid">
+  <div class="card">
+    <div class="card-icon">👥</div>
+    <div class="card-value">{{ stats.total_usuarios }}</div>
+    <div class="card-label">Usuarios Activos</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🚪</div>
+    <div class="card-value">{{ stats.total_puntos }}</div>
+    <div class="card-label">Puntos de Acceso</div>
+  </div>
+  <div class="card verde">
+    <div class="card-icon">✅</div>
+    <div class="card-value">{{ stats.accesos_autorizados }}</div>
+    <div class="card-label">Accesos Autorizados</div>
+  </div>
+  <div class="card rojo">
+    <div class="card-icon">❌</div>
+    <div class="card-value">{{ stats.accesos_denegados }}</div>
+    <div class="card-label">Accesos Denegados</div>
+  </div>
+  <div class="card naranja">
+    <div class="card-icon">🔔</div>
+    <div class="card-value">{{ stats.alertas_pendientes }}</div>
+    <div class="card-label">Alertas Pendientes</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">📅</div>
+    <div class="card-value">{{ stats.eventos_hoy }}</div>
+    <div class="card-label">Eventos Hoy</div>
+  </div>
+</div>
+
+<div class="row2">
+  <!-- Recent events -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3>🕐 Últimos Eventos de Acceso</h3>
+      <a href="/reportes" class="btn btn-outline btn-sm">Ver todos</a>
+    </div>
+    <table>
+      <thead><tr><th>Usuario</th><th>Punto</th><th>Resultado</th><th>Hora</th></tr></thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td>{{ e.nombre_usuario or '—' }}</td>
+          <td>{{ e.punto_nombre }}</td>
+          <td>
+            {% if e.resultado == 'AUTORIZADO' %}<span class="badge badge-verde">✅ Autorizado</span>
+            {% else %}<span class="badge badge-rojo">❌ Denegado</span>{% endif %}
+          </td>
+          <td style="color:#64748b;font-size:0.8rem;">{{ e.timestamp[:16] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">Sin eventos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Alerts -->
+  <div>
+    <div class="section-head">
+      <h2>🔔 Alertas Activas</h2>
+      <a href="/alertas" class="btn btn-outline btn-sm">Ver todas</a>
+    </div>
+    {% for a in alertas %}
+    <div class="alert-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="badge badge-rojo">{{ a.tipo_alerta }}</span>
+        <span style="font-size:0.75rem;color:#64748b;">{{ a.timestamp_emision[:16] }}</span>
+      </div>
+      <div style="margin-top:6px;font-size:0.85rem;">📍 {{ a.punto_nombre or 'N/A' }}</div>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#94a3b8;background:#fff;border-radius:10px;border:1px solid #e2e8f0;">
+      ✅ Sin alertas pendientes
+    </div>
+    {% endfor %}
+
+    <!-- Emergency panel -->
+    <div style="margin-top:20px;background:#fff;border-radius:10px;padding:20px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+      <h3 style="margin-bottom:12px;color:#1a3a5c;">🚨 Control de Emergencia</h3>
+      <p style="font-size:0.82rem;color:#64748b;margin-bottom:12px;">Activa apertura masiva de todas las puertas (NFPA 101)</p>
+      <div style="display:flex;gap:10px;">
+        <button onclick="emergencia(true)" class="btn btn-danger" id="btnEmergencia">🚨 Activar Emergencia</button>
+        <button onclick="emergencia(false)" class="btn btn-success" id="btnReset">✅ Restablecer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart placeholder -->
+<div style="background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:20px;margin-top:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+  <h3 style="margin-bottom:16px;color:#1a3a5c;">📈 Actividad de Accesos (últimos 7 días)</h3>
+  <canvas id="chartAccesos" height="80"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+async function emergencia(activar) {
+  const r = await fetch('/api/emergencia', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({activar})
+  });
+  const d = await r.json();
+  showToast(d.mensaje, activar ? 'rojo' : 'verde');
+  document.getElementById('emergencyBar').className = activar ? 'emergency-bar active' : 'emergency-bar';
+}
+
+// Chart
+fetch('/api/stats_semana').then(r=>r.json()).then(data => {
+  const days = [...new Set(data.map(d=>d.dia))].sort();
+  const auth = days.map(d => { const r = data.find(x=>x.dia===d&&x.resultado==='AUTORIZADO'); return r ? r.total : 0; });
+  const deni = days.map(d => { const r = data.find(x=>x.dia===d&&x.resultado==='DENEGADO'); return r ? r.total : 0; });
+  new Chart(document.getElementById('chartAccesos'), {
+    type:'bar',
+    data: {
+      labels: days,
+      datasets: [
+        { label:'Autorizados', data:auth, backgroundColor:'#86efac' },
+        { label:'Denegados',   data:deni, backgroundColor:'#fca5a5' }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}— Visitantes{% endblock %}
+{% block page_title %}🪪 Gestión de Visitantes{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h2>Visitantes registrados ({{ visitantes|length }})</h2>
+  <button onclick="openModal('modalVisitante')" class="btn btn-primary">➕ Registrar visitante</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Visitante</th><th>Empresa</th><th>Motivo</th><th>Anfitrión</th><th>Credencial Temp.</th><th>Válido hasta</th></tr></thead>
+    <tbody>
+      {% for v in visitantes %}
+      <tr>
+        <td><strong>{{ v.nombre_usuario }}</strong></td>
+        <td>{{ v.empresa or '—' }}</td>
+        <td>{{ v.motivo_visita or '—' }}</td>
+        <td>{{ v.nombre_anfitrion }}</td>
+        <td><span class="badge badge-naranja">{{ v.codigo_rfid or '—' }}</span></td>
+        <td style="font-size:0.82rem;color:#64748b;">{{ (v.fecha_fin or '')[:16] }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">Sin visitantes registrados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalVisitante">
+  <div class="modal">
+    <h2>🪪 Registrar Visitante con Credencial Temporal</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre</label><input id="v_nombre" placeholder="Juan"></div>
+      <div class="form-group"><label>Apellido</label><input id="v_apellido" placeholder="Pérez"></div>
+      <div class="form-group"><label>Documento</label><input id="v_doc" placeholder="CC 1234567"></div>
+      <div class="form-group"><label>Empresa / Organización</label><input id="v_empresa" placeholder="Empresa XYZ"></div>
+      <div class="form-group full"><label>Motivo de visita</label><input id="v_motivo" placeholder="Reunión de negocios"></div>
+      <div class="form-group">
+        <label>Anfitrión (empleado)</label>
+        <select id="v_anfitrion">
+          {% for e in empleados %}<option value="{{ e.id_usuario }}">{{ e.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group"><label>Válido desde</label><input type="datetime-local" id="v_ini"></div>
+      <div class="form-group"><label>Válido hasta</label><input type="datetime-local" id="v_fin"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="closeModal('modalVisitante')" class="btn btn-outline">Cancelar</button>
+      <button onclick="crearVisitante()" class="btn btn-primary">Registrar visitante</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Set default times
+const now = new Date();
+const fin = new Date(now.getTime() + 4 * 3600000);
+document.getElementById('v_ini').value = now.toISOString().slice(0,16);
+document.getElementById('v_fin').value = fin.toISOString().slice(0,16);
+
+async function crearVisitante() {
+  const body = new URLSearchParams({
+    nombre: document.getElementById('v_nombre').value,
+    apellido: document.getElementById('v_apellido').value,
+    documento: document.getElementById('v_doc').value,
+    empresa: document.getElementById('v_empresa').value,
+    motivo: document.getElementById('v_motivo').value,
+    anfitrion: document.getElementById('v_anfitrion').value,
+    fecha_ini: document.getElementById('v_ini').value,
+    fecha_fin: document.getElementById('v_fin').value,
+  });
+  const r = await fetch('/visitantes/crear', { method:'POST', body });
+  const d = await r.json();
+  if (d.success) {
+    showToast(`Visitante registrado ✅ RFID Temporal: ${d.rfid_temporal}`, 'verde');
+    closeModal('modalVisitante');
+    setTimeout(() => location.reload(), 2000);
+  } else {
+    showToast(d.message, 'rojo');
+  }
+}
+</script>
+{% endblock %}
