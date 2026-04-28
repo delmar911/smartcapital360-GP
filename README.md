@@ -1,4 +1,4 @@
-# SmartCapital 360° 🏢
+# SmartCapital 360°
 **Sistema Inteligente de Control de Accesos**  
 Proyecto: Gerencia de Proyectos — Politécnico Grancolombiano  
 Estudiante: Maria Del Mar Artunduaga Artunduaga
@@ -68,14 +68,4 @@ python app.py
 ```
 
 Abrir en el navegador: http://localhost:5001
-
----
-
-## ☁️ Despliegue en Render.com
-
-1. Subir este repositorio a GitHub
-2. Ir a [render.com](https://render.com) → **New Web Service**
-3. Conectar el repositorio de GitHub
-4. Render detecta automáticamente la configuración con `render.yaml`
-5. Hacer clic en **Deploy**
 
