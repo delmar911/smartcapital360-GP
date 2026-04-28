@@ -79,4 +79,3 @@ Abrir en el navegador: http://localhost:5001
 4. Render detecta automáticamente la configuración con `render.yaml`
 5. Hacer clic en **Deploy**
 
-> ⚠️ **Nota sobre SQLite en Render:** El plan gratuito de Render tiene filesystem efímero, por lo que la base de datos se reinicia con cada deploy. Para uso académico/demo esto es suficiente. Para producción real se recomienda migrar a PostgreSQL.
